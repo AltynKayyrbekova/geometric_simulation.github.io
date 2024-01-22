@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Геометрическое распределение</title>
+    <link rel="stylesheet" href="style11.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simple-statistics/7.1.1/simple-statistics.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.1.1"></script>
+</head>
+
+<body>
+    <header>
+        <h1>Геометрическое распределение</h1>
+    </header>
+    <div class="container">
+
+        <section id="simulation-section">
+            <div role="button" onclick="toggleExampleText()" style="color: rgb(139, 139, 255);">Пример задачи</div>
+            <div id="example-text" style="display: none;">
+                "Предположим, мы проводим серию испытаний, где каждое испытание является независимым и имеет
+                одинаковую вероятность успеха \( p \). Геометрическое распределение моделирует количество испытаний,
+                которые нужны, чтобы достичь первого успеха. Например, если вероятность успеха равна \( p=0.2 \),
+                то геометрическое распределение может ответить на вопрос: "Какова вероятность того, что первый успех
+                произойдет на третьем испытании?" Для этого введите значение \( p \) и нажмите кнопку "Сгенерировать".
+            </div>
+
+            <form id="geometric-form">
+                <label for="p">Вероятность успеха в каждом испытании (0<\( p \)<1):</label>
+                <p></p>
+                <input type="number" step="0.01" id="p" name="p" min="0" max="1" required>
+                <p></p>
+                <label for="k">Количество попыток до успеха:</label>
+                <p></p>
+                <input type="number" id="k" name="k" required min="1">
+
+                <p></p>
+                <button type="button" onclick="generateGeometric()">Старт</button>
+            </form>
+
+            <canvas id="geometric-chart"></canvas>
+
+            <div id="output">
+                <h2>Численные характеристики:</h2>
+                <p></p>
+                <p id="output-mean"> Математическое ожидание (Mean ): \(M(X)\) = <span class="math"></span></p>
+                <p></p>
+                <p id="output-variance"> Дисперсия (Variance): \(D(X)\) = <span class="math"></span></p>
+            </div>
+
+            <div role="button" onclick="toggleExplanation()" style="color: rgb(139, 139, 255)">Объяснение</div>
+            <div id="explanation" style="display: none;">
+                <p>Вероятность того, что первый успех произойдет на \( k \)-ом испытании, вычисляется по формуле:</p>
+                \[ P(X = k) = (1 - p)^{k-1} \cdot p, \]
+                <p>где:</p>
+                <ul>
+                    <li> \( p \) - вероятность успеха в каждом испытании,</li>
+                    <li> \( (1 - p) \) - вероятность неудачи в каждом испытании.</li>
+                </ul>
+
+                <p>Математическое ожидание и дисперсия распределения вычисляются следующим образом:</p>
+                \[ M(X) = \frac{1}{p}, \]
+                \[ D(X) = \frac{1-p}{p^2}. \]
+            </div>
+        </section>
+
+        <section id="distribution-table-section" style=" width: 40%; display: none;">
+            <div class="distribution-table-container">
+                <label for="decimal-places">Количество знаков после запятой:</label>
+                <input class="decimal" type="number" id="decimal-places" min="0" onchange="updateDecimalPlaces()">
+                <table id="distribution-table-content">
+                    <thead>
+                        <tr>
+                            <th>k</th>
+                            <th>\(P(X=k)\)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="distribution-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+    <script>
+        function toggleExampleText() {
+            const exampleText = document.getElementById('example-text');
+            exampleText.style.display = (exampleText.style.display === 'none' || exampleText.style.display === '') ? 'block' : 'none';
+        }
+
+        function toggleExplanation() {
+            const explanation = document.getElementById('explanation');
+            explanation.style.display = (explanation.style.display === 'none' || explanation.style.display === '') ? 'block' : 'none';
+        }
+
+        function generateGeometric() {
+            const pInput = document.getElementById('p');
+            const kInput = document.getElementById('k');
+            const outputContainer = document.getElementById('output');
+            const distributionTableSection = document.getElementById('distribution-table-section');
+
+            const p = parseFloat(pInput.value);
+            const k = parseInt(kInput.value);
+
+            // Validation check
+            if (
+                isNaN(p) || isNaN(k) ||
+                p <= 0 || p >= 1 || k < 1
+            ) {
+                alert('Пожалуйста, введите корректные значения. Please enter valid values.');
+                return;
+            }
+
+            const data = calculateGeometricDistribution(p, k);
+            updateChart(data, k);
+            updateOutput(p);
+            updateDistributionTable(data);
+
+            outputContainer.style.display = 'block';
+            distributionTableSection.style.display = 'block';
+        }
+
+        function calculateGeometricDistribution(p, k) {
+            const data = [];
+            let mean = 0;
+            let variance = 0;
+            const decimalPlaces = getDecimalPlaces();
+
+            for (let i = 1; i <= k; i++) {
+                const probability = geometricProbability(i, p);
+                data.push({
+                    x: i,
+                    y: probability
+                });
+
+                mean += i * probability;
+                variance += i * i * probability;
+            }
+
+            variance -= mean * mean;
+
+            return data;
+        }
+
+        function updateDistributionTable(data) {
+            const tableBody = document.getElementById('distribution-table-body');
+            tableBody.innerHTML = '';
+            const decimalPlaces = getDecimalPlaces();
+
+            data.forEach(entry => {
+                const row = document.createElement('tr');
+                const xCell = document.createElement('td');
+                const probabilityCell = document.createElement('td');
+
+                xCell.textContent = entry.x;
+                probabilityCell.textContent = entry.y.toFixed(decimalPlaces);
+
+                row.appendChild(xCell);
+                row.appendChild(probabilityCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateChart(data, k) {
+            const ctx = document.getElementById('geometric-chart').getContext('2d');
+            if (window.myGeometricChart) {
+                window.myGeometricChart.destroy();
+            }
+
+            const chartType = 'scatter';
+
+            const maxProbability = Math.max(...data.map(entry => entry.y));
+            const yAxisMax = Math.min(maxProbability + 0.01, 1);
+
+            const decimalPlaces = getDecimalPlaces();
+            const stepSize = 1 / Math.pow(10, decimalPlaces);
+
+            window.myGeometricChart = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: Array.from({ length: data.length }, (_, i) => i.toString()),
+                    datasets: [{
+                        label: 'Probability',
+                        data: data.map(entry => entry.y),
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderWidth: 1,
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            max: k
+                        },
+                        y: {
+                            min: 0,
+                            max: yAxisMax,
+                            ticks: {
+                                stepSize: stepSize,
+                                beginAtZero: true
+                            }
+                        }
+                    },
+                    
+                    indexAxis: 'x',
+                }
+
+            });
+        }
+
+
+        function updateOutput(p) {
+            const outputContainer = document.getElementById('output');
+            const meanElement = outputContainer.querySelector('#output-mean span.math');
+            const varianceElement = outputContainer.querySelector('#output-variance span.math');
+            const decimalPlaces = getDecimalPlaces();
+
+            const mean = (1 / p).toFixed(decimalPlaces);
+            const variance = ((1 - p) / (p * p)).toFixed(decimalPlaces);
+
+            meanElement.textContent = mean;
+            varianceElement.textContent = variance;
+        }
+
+        function geometricProbability(k, p) {
+            const q = 1 - p;
+            return Math.pow(q, k - 1) * p;
+        }
+
+        function getDecimalPlaces() {
+            const decimalPlacesInput = document.getElementById('decimal-places');
+            return parseInt(decimalPlacesInput.value) || 4;
+        }
+
+        function updateDecimalPlaces() {
+            updateDistributionTable(calculateGeometricDistribution(parseFloat(document.getElementById('p').value), parseInt(document.getElementById('k').value)));
+        }
+    </script>
+</body>
+
+</html>
