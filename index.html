@@ -144,7 +144,7 @@
             let variance = 0;
             const decimalPlaces = getDecimalPlaces();
 
-            for (let i = 1; i <= k; i++) {
+            for (let i = 1; i <= k+1; i++) {
                 const probability = geometricProbability(i, p);
                 data.push({
                     x: i,
@@ -212,7 +212,7 @@
                             min: 1,
                             type: 'linear',
                             position: 'bottom',
-                            max: k+1
+                            max: k
                         },
                         y: {
                             min: 0,
