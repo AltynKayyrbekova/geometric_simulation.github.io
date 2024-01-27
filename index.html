@@ -144,7 +144,7 @@
             let variance = 0;
             const decimalPlaces = getDecimalPlaces();
 
-            for (let i = 1; i <= k+1; i++) {
+            for (let i = 1; i <= k; i++) {
                 const probability = geometricProbability(i, p);
                 data.push({
                     x: i,
@@ -197,7 +197,7 @@
             window.myGeometricChart = new Chart(ctx, {
                 type: chartType,
                 data: {
-                    labels: Array.from({ length: data.length }, (_, i) => i.toString()),
+                    labels: Array.from({ length: data.length }, (_, i) => (i + 1).toString()),
                     datasets: [{
                         label: 'Probability',
                         data: data.map(entry => entry.y),
@@ -209,7 +209,7 @@
                 options: {
                     scales: {
                         x: {
-                            min: 1,
+                            min: 0,
                             type: 'linear',
                             position: 'bottom',
                             max: k
