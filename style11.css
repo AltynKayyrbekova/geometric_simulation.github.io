@@ -19,11 +19,16 @@ header {
     padding: 1vw 0;
     text-align: center;
     margin-bottom: 10px;
-    width: 100%;
 }
 
 header h1 {
     font-size: 2vw;
+}
+
+#example-text,
+#output {
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 #simulation-section {
@@ -33,15 +38,12 @@ header h1 {
 #distribution-table-section {
     flex: 0 1 calc(60% - 20px); 
     max-width: 150px;
-}
-
-.decimal{
-    width: 50%;
+    min-width: 50px;
 }
 
 .distribution-table-container {
     width: 100%;
-    margin-right: 0;
+    margin-left: 10px;
 }
 
 table {
@@ -63,12 +65,10 @@ th {
     width: 20%;
     max-width: 600px; 
     height: auto;
-}
-
-#output {
-    display: none;
     margin-top: 20px;
 }
+
+
 
 div[role="button"] {
     text-transform: none;
@@ -77,15 +77,10 @@ div[role="button"] {
     background-color: #ffffff;
     border: 1px solid rgb(255, 255, 255);
     border-radius: 5px;
-    width: 25%;
-    margin-bottom: 20px;
+    width: 150px;
+    box-sizing: border-box;
 }
 
-#example-text {
-    margin-top: 10px;
-    display: none;
-    margin-bottom: 20px;
-}
 
 input, select {
     border: 1px solid #63f34c;
@@ -98,7 +93,7 @@ input, select {
 }
 
 #geometric-form input {
-    width: 100px;
+    width: 150px;
 }
 
 button {
@@ -106,8 +101,12 @@ button {
     border: solid 6px rgb(84, 182, 84);
     color: rgb(255, 255, 255);
     background-color: rgb(84, 182, 84);
-    width: 20%;
+    width: 120px;
     box-sizing: border-box;
+}
+
+#distribution-table-body td {
+    padding: 10px;
 }
 
 
