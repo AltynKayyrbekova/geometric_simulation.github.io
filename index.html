@@ -52,16 +52,17 @@
                 <p></p>
                 <input type="number" step="0.01" id="p" name="p" min="0" max="1" required>
                 <p></p>
-                <label for="k">Номер опыта первого успеха (0<\( k \)):</label>
+                <label for="k">Номер опыта первого успеха (0<\( k* \)):</label>
                 <p></p>
                 <input type="number" id="k" name="k" required min="1", style = "border: 0px solid #878787">
                 <p></p>
+                <p style="font-size: 1vw;">*\(k\) не является параметром распределения</p>
                 <button type="button" onclick="generateGeometric()">Старт</button>
             </form>
 
             <canvas id="geometric-chart"></canvas>
 
-            <div id="output">
+            <div id="output" style="display: none;">
                 <h2>Численные характеристики:</h2>
                 <p></p>
                 <p id="output-mean"> Математическое ожидание (Mean ): \(M(X) = E(X) = \frac{1}{p}\) = <span class="math"></span></p>
