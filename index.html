@@ -48,11 +48,11 @@
             </div>
 
             <form id="geometric-form">
-                <label for="p">Вероятность успеха в каждом опыте (0<\( p \)<1):</label>
+                <label for="p">Вероятность успеха в каждом опыте (\(0 < p < 1\)):</label>
                 <p></p>
                 <input type="number" step="0.01" id="p" name="p" min="0" max="1" required>
                 <p></p>
-                <label for="k">Номер опыта первого успеха (0<\( k* \)):</label>
+                <label for="k">Номер опыта первого успеха (\(0 < k* < 300\)):</label>
                 <p></p>
                 <input type="number" id="k" name="k" required min="1">
                 <p></p>
@@ -189,10 +189,14 @@
             const chartType = 'bar';
 
             const maxProbability = Math.max(...data.map(entry => entry.y));
-            const yAxisMax = Math.min(maxProbability + 0.1, 1);
+            const minProbability = Math.min(...data.map(entry => entry.y));
+            const yAxisMax = Math.min(maxProbability, 1);
+            const yAxisMin = Math.max(0, minProbability);
 
             const decimalPlaces = getDecimalPlaces();
-            const stepSize = 1 / Math.pow(10, decimalPlaces);
+            const stepSize = 1 / Math.pow(10, 2);
+
+            let increasedScale = false; // Флаг для отслеживания увеличения масштаба
 
             window.myGeometricChart = new Chart(ctx, {
                 type: chartType,
@@ -211,6 +215,11 @@
                             min: 1,
                             type: 'linear',
                             position: 'bottom',
+                            ticks: {
+                                stepSize: 1,
+                                suggestedMin: 1,
+                                suggestedMax: k
+                            },
                             max: k
                         },
                         y: {
@@ -218,37 +227,52 @@
                             max: yAxisMax,
                             ticks: {
                                 stepSize: stepSize,
-                                beginAtZero: true
+                                suggestedMin: 0,
+                                suggestedMax: yAxisMax
                             }
                         }
                     },
-
                     plugins: {
                         zoom: {
                             pan: {
                                 enabled: true,
-                                mode:'xy',
-                                OverScaleMode:'xy'
+                                mode: 'xy',
+                                onPan: function ({ chart }) {
+                                    const scales = chart.scales;
+                                    scales['x'].min = increasedScale ? 1 : scales['x'].min;
+                                    if (scales['x'].min < 1) scales['x'].min = 1;
+                                    if (scales['x'].max > k) scales['x'].max = k;
+                                    if (scales['y'].min < 0) scales['y'].min = 0;
+                                    if (scales['y'].max > yAxisMax) scales['y'].max = yAxisMax;
+                                }
                             },
                             zoom: {
                                 wheel: {
                                     enabled: true
                                 },
-                                pinch: {
-                                    enabled: true
-                                },
-                                mode: 'xy'
-                            }
-                        }
-
+                                mode: 'xy',
+                                onZoom: function ({ chart }) {
+                                    const scales = chart.scales;
+                                    scales['x'].min = increasedScale ? 1 : scales['x'].min;
+                                    if (scales['x'].min < 1) scales['x'].min = 1;
+                                    if (scales['x'].max > k) scales['x'].max = k;
+                                    if (scales['y'].min < 0) scales['y'].min = 0;
+                                    if (scales['y'].max > yAxisMax) scales['y'].max = yAxisMax;
+                                }
+                            },
+                        },
                     },
-                    
-                    indexAxis: 'x',
-                    barPercentage: 0.1
-                }
+                    barPercentage: 0.1,
+                },
+            });
 
+            // Добавляем слушателя событий для установки флага увеличения масштаба
+            ctx.canvas.addEventListener('click', function () {
+                increasedScale = true;
             });
         }
+
+
 
 
         function updateOutput(p) {
