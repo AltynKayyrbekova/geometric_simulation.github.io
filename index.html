@@ -218,7 +218,11 @@
                             ticks: {
                                 stepSize: 1,
                                 suggestedMin: 1,
-                                suggestedMax: k
+                                suggestedMax: k,
+                                callback: (value) => {
+                                    console.log(value)
+                                    return value.toFixed(0)
+                                }
                             },
                             max: k
                         },
@@ -228,7 +232,11 @@
                             ticks: {
                                 stepSize: stepSize,
                                 suggestedMin: 0,
-                                suggestedMax: yAxisMax
+                                suggestedMax: yAxisMax,
+                                callback: (value) => {
+                                    console.log(value)
+                                    return value.toFixed(decimalPlaces)
+                                }
                             }
                         }
                     },
